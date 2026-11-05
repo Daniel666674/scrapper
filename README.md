@@ -25,7 +25,7 @@ Built for authorized resellers/distributors who need their suppliers' official p
 6. Click **Download photos**. The button shows progress (e.g. `Working… 37/200 pages · 120 photos`).
    You can click **Stop** at any time and keep what was already downloaded.
 7. When it finishes, click the green **Download ZIP** button. The photos are also saved on your computer in the
-   `downloads` folder inside the project: `downloads/<date>/<site>/<product>/01.jpg, 02.jpg…`
+   `downloads` folder inside the project: `downloads/<date>/<site-with-dashes>/<product>/01.jpg, 02.jpg…`
 8. **When you're done**, close the black window to stop the app.
 
 > ⏱️ **How long does it take?** Shopify stores are fast (a few minutes for 200 products). Other sites take about

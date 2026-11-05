@@ -74,7 +74,9 @@ export async function scrapeItem(
     list = opts.all ? [...found.main, ...found.other] : found.main.length ? found.main : found.other;
   }
   list = [...new Set(list)];
-  const folder = `${new URL(pageUrl).hostname.replace(/^www\./, "")}/${slug(title)}`;
+  // No dots in the site folder name: macOS treats a folder ending in ".app" (e.g. "shop.netlify.app") as a program
+  const site = new URL(pageUrl).hostname.replace(/^www\./, "").replace(/\./g, "-");
+  const folder = `${site}/${slug(title)}`;
   log(`  ${title} — ${list.length} candidate images`);
 
   const downloaded = await mapLimit(list, 4, async (img) => {
