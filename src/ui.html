@@ -16,33 +16,58 @@ button:disabled{opacity:.5;cursor:wait}
 #result{margin-top:16px;display:none}
 a.dl{display:block;text-align:center;padding:14px;border-radius:10px;background:#1f8f4e;color:#fff;font-weight:600;text-decoration:none}
 small{display:block;margin-top:8px;color:var(--mute);text-align:center}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.tabs label{flex:1;min-width:200px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;font-weight:600}
+.tabs label:has(input:checked){border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.tabs span{font-weight:400;color:var(--mute);font-size:13px}
+.hint{color:var(--mute);font-size:14px;margin:4px 0 10px}
 .warn{display:none;margin-top:8px;color:#b45309;font-size:13px}
 </style></head><body><main>
 <h1>📸 Photo Grabber</h1>
-<p class="sub">Paste your supplier's product links (one per line), click the button, get a ZIP with all the photos.</p>
+<p class="sub">Get all the photos from a supplier's website as a ZIP. No need to paste every product.</p>
 <div class="card">
-  <textarea id="urls" placeholder="https://supplier.com/products/perfume-one&#10;https://supplier.com/products/perfume-two" autofocus></textarea>
+  <div class="tabs">
+    <label><input type="radio" name="mode" value="catalog" checked> 🗂️ Whole catalog <span>(1 link)</span></label>
+    <label><input type="radio" name="mode" value="links"> 🔗 Specific products <span>(many links)</span></label>
+  </div>
+  <p class="hint" id="hint">Paste the supplier's website (home page or a category page). I'll find all the products myself.</p>
+  <textarea id="urls" placeholder="https://supplier.com" autofocus></textarea>
+  <label class="opt" id="maxrow">Maximum products: <input type="number" id="max" value="500" min="1" max="5000" style="width:90px;margin-left:6px"></label>
   <label class="opt"><input type="checkbox" id="all"> Also grab secondary images (may include extras)</label>
   <label class="opt"><input type="checkbox" id="norobots"> Skip the site's robots.txt (only with your supplier's permission)</label>
   <div class="warn" id="warn">Only do this if your supplier explicitly allowed it.</div>
   <button id="go">Download photos</button>
+  <button id="stop" style="display:none;background:transparent;color:var(--mute);border:1px solid var(--line);margin-top:8px;padding:10px;font-size:15px">Stop (keep what's done)</button>
   <div id="log"></div>
   <div id="result"><a class="dl" id="zip" href="#">⬇ Download ZIP</a><small id="saved"></small></div>
 </div></main>
 <script>
 const $=id=>document.getElementById(id);
+const mode=()=>document.querySelector('input[name=mode]:checked').value;
+function syncMode(){
+  const c=mode()==="catalog";
+  $("hint").textContent=c?"Paste the supplier's website (home page or a category page). I'll find all the products myself.":"Paste product page links, one per line.";
+  $("urls").placeholder=c?"https://supplier.com":"https://supplier.com/products/perfume-one\nhttps://supplier.com/products/perfume-two";
+  $("urls").style.minHeight=c?"60px":"150px";$("urls").style.height=c?"60px":"150px";
+  $("maxrow").style.display=c?"flex":"none";
+}
+document.querySelectorAll("input[name=mode]").forEach(r=>r.onchange=syncMode);syncMode();
 $("norobots").onchange=e=>$("warn").style.display=e.target.checked?"block":"none";
+let jobId=null;
+$("stop").onclick=()=>{if(jobId){fetch("/api/job/"+jobId+"/cancel",{method:"POST"});$("stop").textContent="Stopping…"}};
 $("go").onclick=async()=>{
   $("go").disabled=true;$("go").textContent="Working…";$("result").style.display="none";$("log").textContent="";
-  const r=await fetch("/api/start",{method:"POST",body:JSON.stringify({urls:$("urls").value.split(/\s+/),all:$("all").checked,respectRobots:!$("norobots").checked})});
+  const r=await fetch("/api/start",{method:"POST",body:JSON.stringify({urls:$("urls").value,mode:mode(),max:$("max").value,all:$("all").checked,respectRobots:!$("norobots").checked})});
   const j=await r.json();
   if(!r.ok){$("log").textContent="⚠️ "+j.error;reset();return}
+  jobId=j.id;$("stop").style.display="block";$("stop").textContent="Stop (keep what's done)";
   const t=setInterval(async()=>{
     const s=await (await fetch("/api/job/"+j.id)).json();
     $("log").textContent=s.log.join("\n");$("log").scrollTop=1e9;
+    $("go").textContent=s.total?`Working… ${s.step}/${s.total} pages · ${s.count} photos`:"Working…";
     if(s.done){clearInterval(t);reset();
       if(s.zip){$("zip").href="/api/job/"+j.id+"/zip";$("saved").textContent="Also saved on your computer in: "+s.saved;$("result").style.display="block"}}
   },800);
 };
-function reset(){$("go").disabled=false;$("go").textContent="Download photos"}
+function reset(){$("go").disabled=false;$("go").textContent="Download photos";$("stop").style.display="none"}
 </script></body></html>
