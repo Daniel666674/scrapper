@@ -1,0 +1,23 @@
+{
+  "name": "scrapper",
+  "version": "1.0.0",
+  "description": "Descarga fotos de productos de las webs de tus proveedores autorizados",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "scrape": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test src/*.test.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "cheerio": "^1.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
