@@ -5,6 +5,7 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "start": "tsx src/server.ts",
     "scrape": "tsx src/index.ts",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test src/*.test.ts"
@@ -13,7 +14,8 @@
     "node": ">=20"
   },
   "dependencies": {
-    "cheerio": "^1.2.0"
+    "cheerio": "^1.2.0",
+    "fflate": "^0.8.3"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
